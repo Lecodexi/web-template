@@ -1,4 +1,6 @@
 @import '../../styles/customMediaQueries.css';
+/* Importation de la police Montserrat en deux épaisseurs (800 et 900) */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@800;900&display=swap');
 
 .root {
   display: flex;
@@ -12,27 +14,22 @@
   }
 }
 
-.logo {
-  /* If height is increased, change link margins accordingly */
-  /* NOTE: extremely wide logos may look bad. This will scale them to container of 24 x 200. */
-  height: auto;
-  width: auto;
-  /* Mobile topbar has maximum of 100vw - 132px space for logo */
-  max-width: min(calc(100vw - 132px), 100%, 370px);
-  object-fit: contain;
-  object-position: center;
-
-  @media (--viewportLarge) {
-    max-width: min(100%, 370px);
-  }
+.texteGris {
+  font-size: 28px;
+  font-weight: 800;
+  color: #222222; /* Gris foncé : Sécurité et fiabilité */
+  letter-spacing: -1px;
+  font-family: 'Montserrat', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  margin: 0;
+  line-height: 1;
 }
 
-.logo24 {
-  max-height: 24px;
-}
-.logo36 {
-  max-height: 36px;
-}
-.logo48 {
-  max-height: 48px;
+.texteOrange {
+  font-size: 28px;
+  font-weight: 900; /* Légèrement plus épais pour l'impact */
+  color: #F5A623; /* Orange vif : Jeu et dynamisme */
+  letter-spacing: -1px;
+  font-family: 'Montserrat', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  margin: 0;
+  line-height: 1;
 }

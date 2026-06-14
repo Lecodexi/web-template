@@ -61,34 +61,6 @@ const ErrorMessages = props => {
   );
 };
 
-/**
- * The EditListingPricingForm component.
- *
- * @component
- * @param {Object} props
- * @param {string} [props.formId] - The form id
- * @param {string} [props.className] - Custom class that extends the default class for the root element
- * @param {string} [props.rootClassName] - Custom class that overrides the default class for the root element
- * @param {string} props.unitType - The unitType from listing.attributes.publicData
- * @param {Object} [props.listingTypeConfig] - The listing type config that matches with listingType on publicData.
- * @param {Object} [props.listingTypeConfig.priceVariations] - The price variations config.
- * @param {boolean} props.listingTypeConfig.priceVariations.enabled - Whether the price variations are enabled.
- * @param {Object} [props.listingTypeConfig.transactionType] - The transaction type config.
- * @param {string} props.listingTypeConfig.transactionType.process - The transaction process config.
- * @param {string} props.marketplaceCurrency - The marketplace currency
- * @param {number} [props.listingMinimumPriceSubUnits] - The listing minimum price sub units
- * @param {boolean} [props.autoFocus] - Whether the input should be focused
- * @param {boolean} [props.disabled] - Whether the form is disabled
- * @param {boolean} [props.ready] - Whether the form is ready
- * @param {Function} props.onSubmit - The submit function
- * @param {boolean} [props.invalid] - Whether the form is invalid
- * @param {boolean} [props.pristine] - Whether the form is pristine
- * @param {string} props.saveActionMsg - The save action message
- * @param {boolean} [props.updated] - Whether the form is updated
- * @param {boolean} [props.updateInProgress] - Whether the form is updating
- * @param {Object} [props.fetchErrors] - The fetch errors
- * @returns {JSX.Element}
- */
 export const EditListingPricingForm = props => (
   <FinalForm
     mutators={{ ...arrayMutators }}
@@ -179,6 +151,23 @@ export const EditListingPricingForm = props => (
               pristine={pristine}
             />
           ) : null}
+
+          {/* DÉBUT DU NOUVEAU BLOC CAUTION */}
+          <div style={{ marginTop: '32px', marginBottom: '24px', padding: '24px', backgroundColor: '#f9f9f9', borderRadius: '8px' }}>
+            <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '8px', marginTop: '0' }}>Caution du jeu</h3>
+            <p style={{ fontSize: '14px', color: '#4A4A4A', marginBottom: '24px', lineHeight: '1.5' }}>
+              Définissez le montant de la caution pour ce jeu. Ce montant ne sera pas prélevé au moment de la réservation, mais servira de garantie en cas de perte ou de dégradation du matériel.
+            </p>
+            <FieldCurrencyInput
+              id={`${formId}securityDeposit`}
+              name="securityDeposit"
+              className={css.input}
+              label="Montant de la caution"
+              placeholder="Ex: 30,00"
+              currencyConfig={appSettings.getCurrencyFormatting(marketplaceCurrency)}
+            />
+          </div>
+          {/* FIN DU NOUVEAU BLOC CAUTION */}
 
           <Button
             className={css.submitButton}

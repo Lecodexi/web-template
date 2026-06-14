@@ -58,10 +58,7 @@ const FieldHidden = props => {
 };
 
 // Field component that either allows selecting listing type (if multiple types are available)
-// or just renders hidden fields:
-// - listingType              Set of predefined configurations for each listing type
-// - transactionProcessAlias  Initiate correct transaction against Marketplace API
-// - unitType                 Main use case: pricing unit
+// or just renders hidden fields
 const FieldSelectListingType = props => {
   const {
     name,
@@ -207,6 +204,17 @@ const FieldSelectCategory = props => {
 
   const { prefix, listingCategories, formApi, intl, setAllCategoriesChosen, values } = props;
 
+  // --- DÉBUT DU HARDCODE (Injection forcée de la catégorie) ---
+  // On copie les catégories existantes et on ajoute "Jeux Indépendants" si ce n'est pas déjà fait
+  const customCategories = listingCategories ? [...listingCategories] : [];
+  if (!customCategories.find(cat => cat.id === 'independants')) {
+    customCategories.push({
+      id: 'independants',
+      name: 'Jeux Indépendants'
+    });
+  }
+  // --- FIN DU HARDCODE ---
+
   // Counts the number of selected categories in the form values based on the given prefix.
   const countSelectedCategories = () => {
     return Object.keys(values).filter(key => key.startsWith(prefix)).length;
@@ -227,13 +235,13 @@ const FieldSelectCategory = props => {
         formApi.change(`${prefix}${i}`, null);
       }
     }
-    const categoryConfig = findCategoryConfig(currentCategoryOptions, category).subcategories;
+    const categoryConfig = findCategoryConfig(currentCategoryOptions, category)?.subcategories;
     setAllCategoriesChosen(!categoryConfig || categoryConfig.length === 0);
   };
 
   return (
     <CategoryField
-      currentCategoryOptions={listingCategories}
+      currentCategoryOptions={customCategories} // On passe notre liste modifiée ici !
       level={1}
       values={values}
       prefix={prefix}
@@ -283,30 +291,6 @@ const getListingTypeConfig = (config, listingType) => {
 
 /**
  * Form that asks title, description, transaction process and unit type for pricing
- * In addition, it asks about custom fields according to marketplace-custom-config.js
- *
- * @component
- * @param {Object} props
- * @param {string} [props.className] - Custom class that extends the default class for the root element
- * @param {string} [props.formId] - The form id
- * @param {boolean} props.disabled - Whether the form is disabled
- * @param {boolean} props.ready - Whether the form is ready
- * @param {boolean} props.updated - Whether the form is updated
- * @param {boolean} props.updateInProgress - Whether the update is in progress
- * @param {Object} props.fetchErrors - The fetch errors object
- * @param {propTypes.error} [props.fetchErrors.createListingDraftError] - The create listing draft error
- * @param {propTypes.error} [props.fetchErrors.showListingsError] - The show listings error
- * @param {propTypes.error} [props.fetchErrors.updateListingError] - The update listing error
- * @param {Function} props.pickSelectedCategories - The pick selected categories function
- * @param {Array<Object>} props.selectableListingTypes - The selectable listing types
- * @param {boolean} props.hasPredefinedListingType - Whether the listing type is already saved or predefined through URL
- * @param {propTypes.listingFields} props.listingFieldsConfig - The listing fields config
- * @param {string} props.listingCurrency - The listing currency
- * @param {string} props.saveActionMsg - The save action message
- * @param {boolean} [props.autoFocus] - Whether the form should autofocus
- * @param {Function} props.onListingTypeChange - The listing type change function
- * @param {Function} props.onSubmit - The submit function
- * @returns {JSX.Element}
  */
 const EditListingDetailsForm = props => (
   <FinalForm
@@ -360,8 +344,6 @@ const EditListingDetailsForm = props => (
       const currencyToCheck = listingCurrency || marketplaceCurrency;
 
       // Verify if the selected listing type's transaction process supports the chosen currency.
-      // This checks compatibility between the transaction process
-      // and the marketplace or listing currency.
       const isCompatibleCurrency = isValidCurrencyForTransactionProcess(
         transactionProcessAlias,
         currencyToCheck
@@ -369,7 +351,8 @@ const EditListingDetailsForm = props => (
 
       const maxLength60Message = maxLength(maxLengthMessage, TITLE_MAX_LENGTH);
 
-      const hasCategories = selectableCategories && selectableCategories.length > 0;
+      // --- AUTRE HARDCODE --- On s'assure qu'il considère toujours qu'il y a des catégories disponibles
+      const hasCategories = true; 
       const showCategories = listingType && hasCategories;
 
       const showTitle = hasCategories ? allCategoriesChosen : listingType;

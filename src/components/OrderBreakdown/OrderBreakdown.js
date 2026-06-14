@@ -66,43 +66,14 @@ export const OrderBreakdownComponent = props => {
     return (hasCustomerCommission || hasProviderCommission) && !item.reversal;
   });
 
-  const classes = classNames(rootClassName || css.root, className);
+  // --- RÉCUPÉRATION DE LA CAUTION DYNAMIQUE ---
+  const publicData = transaction?.listing?.attributes?.publicData || {};
+  const securityDepositObj = publicData?.securityDeposit;
+  // Sharetribe stocke les prix en centimes (ex: 3000 pour 30,00€), on divise donc par 100
+  const cautionAmount = securityDepositObj?.amount ? securityDepositObj.amount / 100 : 0;
+  // ---------------------------------------------
 
-  /**
-   * OrderBreakdown contains different line items:
-   *
-   * LineItemBookingPeriod: prints booking start and booking end types. Prop dateType
-   * determines if the date and time or only the date is shown
-   *
-   * LineItemShippingFeeMaybe: prints the shipping fee (combining additional fee of
-   * additional items into it).
-   *
-   * LineItemShippingFeeRefundMaybe: prints the amount of refunded shipping fee
-   *
-   * LineItemBasePriceMaybe: prints the base price calculation for the listing, e.g.
-   * "$150.00 * 2 nights $300"
-   *
-   * LineItemUnknownItemsMaybe: prints the line items that are unknown. In ideal case there
-   * should not be unknown line items. If you are using custom pricing, you should create
-   * new custom line items if you need them.
-   *
-   * LineItemSubTotalMaybe: prints subtotal of line items before possible
-   * commission or refunds
-   *
-   * LineItemRefundMaybe: prints the amount of refund
-   *
-   * LineItemCustomerCommissionMaybe: prints the amount of customer commission
-   * The default transaction process used by this template doesn't include the customer commission.
-   *
-   * LineItemCustomerCommissionRefundMaybe: prints the amount of refunded customer commission
-   *
-   * LineItemProviderCommissionMaybe: prints the amount of provider commission
-   *
-   * LineItemProviderCommissionRefundMaybe: prints the amount of refunded provider commission
-   *
-   * LineItemTotalPrice: prints total price of the transaction
-   *
-   */
+  const classes = classNames(rootClassName || css.root, className);
 
   return (
     <div className={classes}>
@@ -153,6 +124,26 @@ export const OrderBreakdownComponent = props => {
         intl={intl}
       />
 
+      {/* --- DÉBUT DE LA LIGNE CAUTION DYNAMIQUE --- */}
+      {cautionAmount > 0 ? (
+        <div style={{ padding: '16px 0 8px 0', borderTop: '1px solid #EAEAEA', marginTop: '8px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
+            <span>
+              <strong style={{ color: '#4A4A4A', fontSize: '16px' }}>Caution du matériel</strong>
+            </span>
+            <span style={{ fontWeight: 'bold', color: '#4A4A4A', fontSize: '16px' }}>{cautionAmount.toFixed(2)} €</span>
+          </div>
+          
+          {/* Ce texte rassurant ne s'affiche que pour le locataire au moment de payer */}
+          {isCustomer ? (
+            <div style={{ backgroundColor: '#F0F8FF', border: '1px solid #B0D4FF', padding: '12px', borderRadius: '6px', fontSize: '13px', color: '#004085', lineHeight: '1.5' }}>
+              <strong>Information importante :</strong> Ce montant de {cautionAmount.toFixed(2)} € n'est <strong>pas débité</strong> de votre compte aujourd'hui. Il s'agit uniquement d'une empreinte bancaire sécurisée agissant comme garantie en cas de perte ou de dégradation du jeu.
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+      {/* --- FIN DE LA LIGNE CAUTION DYNAMIQUE --- */}
+
       <LineItemTotalPrice transaction={transaction} isProvider={isProvider} intl={intl} />
 
       {hasCommissionLineItem ? (
@@ -164,22 +155,6 @@ export const OrderBreakdownComponent = props => {
   );
 };
 
-/**
- * Order breakdown aka receipt
- *
- * @component
- * @param {Object} props
- * @param {string?} props.className add more style rules in addition to component's own css.root
- * @param {string?} props.rootClassName overwrite components own css.root
- * @param {string} props.marketplaceName
- * @param {string} props.timeZone IANA time zone name
- * @param {string} props.currency E.g. 'USD'
- * @param {'customer' | 'provider'} props.userRole
- * @param {propTypes.transaction} props.transaction
- * @param {propTypes.booking?} props.booking
- * @param {DATE_TYPE_DATE | DATE_TYPE_TIME | DATE_TYPE_DATETIME} props.dateType
- * @returns {JSX.Element} the order breakdown component
- */
 const OrderBreakdown = props => {
   const intl = useIntl();
   return <OrderBreakdownComponent intl={intl} {...props} />;

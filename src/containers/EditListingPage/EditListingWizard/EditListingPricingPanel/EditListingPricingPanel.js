@@ -31,28 +31,31 @@ const getListingTypeConfig = (publicData, listingTypes) => {
   return listingTypes.find(conf => conf.listingType === selectedListingType);
 };
 
-// NOTE: components that handle price variants and start time interval are currently
-// exporting helper functions that handle the initial values and the submission values.
-// This is a tentative approach to contain logic in one place.
 const getInitialValues = props => {
   const { listing, listingTypes } = props;
   const { publicData } = listing?.attributes || {};
   const { unitType } = publicData || {};
   const listingTypeConfig = getListingTypeConfig(publicData, listingTypes);
-  // Note: publicData contains priceVariationsEnabled if listing is created with priceVariations enabled.
   const isPriceVariationsInUse = isPriceVariationsEnabled(publicData, listingTypeConfig);
+
+  // On retransforme les chiffres simples de la BDD en format Monnaie pour l'affichage
+  let securityDeposit = null;
+  if (publicData?.securityDeposit && publicData.securityDeposit.amount) {
+    securityDeposit = new Money(publicData.securityDeposit.amount, publicData.securityDeposit.currency);
+  }
 
   return unitType === FIXED || isPriceVariationsInUse
     ? {
         ...getInitialValuesForPriceVariants(props, isPriceVariationsInUse),
         ...getInitialValuesForStartTimeInterval(props),
+        securityDeposit, 
       }
-    : { price: listing?.attributes?.price };
+    : { 
+        price: listing?.attributes?.price,
+        securityDeposit, 
+      };
 };
 
-// This is needed to show the listing's price consistently over XHR calls.
-// I.e. we don't change the API entity saved to Redux store.
-// Instead, we use a temporary entity inside the form's state.
 const getOptimisticListing = (listing, updateValues) => {
   const tmpListing = {
     ...listing,
@@ -68,26 +71,6 @@ const getOptimisticListing = (listing, updateValues) => {
   return tmpListing;
 };
 
-/**
- * The EditListingPricingPanel component.
- *
- * @component
- * @param {Object} props
- * @param {string} [props.className] - Custom class that extends the default class for the root element
- * @param {string} [props.rootClassName] - Custom class that overrides the default class for the root element
- * @param {propTypes.ownListing} props.listing - The listing object
- * @param {string} props.marketplaceCurrency - The marketplace currency
- * @param {number} props.listingMinimumPriceSubUnits - The listing minimum price sub units
- * @param {boolean} props.disabled - Whether the form is disabled
- * @param {boolean} props.ready - Whether the form is ready
- * @param {Function} props.onSubmit - The submit function
- * @param {string} props.submitButtonText - The submit button text
- * @param {Array<propTypes.listingType>} props.listingTypes - The listing types
- * @param {boolean} props.panelUpdated - Whether the panel is updated
- * @param {boolean} props.updateInProgress - Whether the panel is updating
- * @param {Object} props.errors - The errors
- * @returns {JSX.Element}
- */
 const EditListingPricingPanel = props => {
   const [state, setState] = useState({ initialValues: getInitialValues(props) });
 
@@ -119,7 +102,6 @@ const EditListingPricingPanel = props => {
   const process = listingTypeConfig?.transactionType?.process;
   const isBooking = isBookingProcess(process);
 
-  // Note: publicData contains priceVariationsEnabled if listing is created with priceVariations enabled.
   const isPriceVariationsInUse = isPriceVariationsEnabled(publicData, listingTypeConfig);
 
   const isCompatibleCurrency = isValidCurrencyForTransactionProcess(
@@ -162,24 +144,23 @@ const EditListingPricingPanel = props => {
           className={css.form}
           initialValues={initialValues}
           onSubmit={values => {
-            const { price } = values;
+            const { price, securityDeposit } = values;
 
-            // New values for listing attributes
+            // CORRECTION ICI : On transforme le format complexe "Money" en chiffres simples
+            const securityDepositData = securityDeposit 
+              ? { amount: securityDeposit.amount, currency: securityDeposit.currency } 
+              : null;
+
             let updateValues = {};
 
             if (unitType === FIXED || isPriceVariationsInUse) {
               let publicDataUpdates = { priceVariationsEnabled: isPriceVariationsInUse };
-              // NOTE: components that handle price variants and start time interval are currently
-              // exporting helper functions that handle the initial values and the submission values.
-              // This is a tentative approach to contain logic in one place.
-              // We might remove or improve this setup in the future.
-
-              // This adds startTimeInterval to publicData
+              
               const startTimeIntervalChanges = handleSubmitValuesForStartTimeInterval(
                 values,
                 publicDataUpdates
               );
-              // This adds lowest price variant to the listing.attributes.price and priceVariants to listing.attributes.publicData
+              
               const priceVariantChanges = handleSubmitValuesForPriceVariants(
                 values,
                 publicDataUpdates,
@@ -193,6 +174,7 @@ const EditListingPricingPanel = props => {
                   priceVariationsEnabled: isPriceVariationsInUse,
                   ...startTimeIntervalChanges.publicData,
                   ...priceVariantChanges.publicData,
+                  securityDeposit: securityDepositData, // Sauvegarde des chiffres simples
                 },
               };
             } else {
@@ -203,11 +185,15 @@ const EditListingPricingPanel = props => {
                     },
                   }
                 : {};
-              updateValues = { price, ...priceVariationsEnabledMaybe };
+              updateValues = { 
+                price, 
+                publicData: {
+                  ...(priceVariationsEnabledMaybe.publicData || {}),
+                  securityDeposit: securityDepositData, // Sauvegarde des chiffres simples
+                } 
+              };
             }
 
-            // Save the initialValues to state
-            // Otherwise, re-rendering would overwrite the values during XHR call.
             setState({
               initialValues: getInitialValues({
                 listing: getOptimisticListing(listing, updateValues),

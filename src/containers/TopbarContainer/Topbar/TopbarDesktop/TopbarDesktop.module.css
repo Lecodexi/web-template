@@ -24,14 +24,71 @@
   }
 }
 
-/* logo */
+/* ==================================================== */
+/* NOUVEAUX STYLES POUR L'EN-TÊTE ET LE MENU CATÉGORIES */
+/* ==================================================== */
+
+/* Permet d'empiler la barre de navigation et le nouveau menu */
+.topbarWrapper {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+/* logo - Modifié pour l'agrandir */
 .logoLink {
   border-bottom: 0px solid;
   transition: var(--transitionStyleButton);
+  height: auto !important;
+  max-height: 70px !important; 
+  padding-top: 5px;
+  padding-bottom: 5px;
 }
 .logoLink:hover {
   border-bottom: 4px solid var(--marketplaceColor);
   border-radius: 0;
+}
+.logoLink img {
+  max-height: 70px !important;
+}
+
+/* La grande barre qui contient le menu des catégories */
+.categoryMenuContainer {
+  background-color: #fcfcfc; /* Gris très clair */
+  border-top: 1px solid #eef1f5;
+  border-bottom: 1px solid #eef1f5;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  box-shadow: 0 4px 6px -4px rgba(0,0,0,0.05); /* Petite ombre légère */
+}
+
+/* La disposition des boutons dans la barre */
+.categoryMenu {
+  display: flex;
+  gap: 45px;
+  padding: 14px 24px;
+  max-width: 1056px; 
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Le style du texte des boutons */
+.categoryLink {
+  font-weight: 600;
+  color: #4a4a4a;
+  text-decoration: none;
+  font-size: 15px;
+  letter-spacing: 0.2px;
+  transition: all 0.2s ease-in-out;
+}
+
+/* L'effet quand on passe la souris dessus */
+.categoryLink:hover {
+  color: #ff5a5f; /* Rouge chaleureux pour l'aspect jeu */
+  transform: translateY(-1px); /* Fait légèrement "sauter" le bouton */
+  text-decoration: none;
 }
 
 /* Search */

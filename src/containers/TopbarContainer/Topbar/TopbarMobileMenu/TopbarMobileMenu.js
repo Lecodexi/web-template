@@ -1,23 +1,39 @@
-/**
- *  TopbarMobileMenu prints the menu content for authenticated user or
- * shows login actions for those who are not authenticated.
- */
 import React from 'react';
 import classNames from 'classnames';
 
-import { ACCOUNT_SETTINGS_PAGES } from '../../../../routing/routeConfiguration';
 import { FormattedMessage } from '../../../../util/reactIntl';
+import { ACCOUNT_SETTINGS_PAGES } from '../../../../routing/routeConfiguration';
 import { ensureCurrentUser } from '../../../../util/data';
 
 import {
   AvatarLarge,
-  ExternalLink,
   InlineTextButton,
   NamedLink,
   NotificationBadge,
 } from '../../../../components';
 
 import css from './TopbarMobileMenu.module.css';
+
+// --- NOUVEAUX LIENS CATÉGORIES POUR MOBILE ---
+const CategoryLinks = () => (
+  <>
+    <li className={css.navigationLink}>
+      <NamedLink name="SearchPage" to={{ search: '?pub_category=nouveautes' }}>🎲 Nouveautés</NamedLink>
+    </li>
+    <li className={css.navigationLink}>
+      <NamedLink name="SearchPage" to={{ search: '?pub_category=strategie' }}>🧩 Stratégie & Réflexion</NamedLink>
+    </li>
+    <li className={css.navigationLink}>
+      <NamedLink name="SearchPage" to={{ search: '?pub_category=famille' }}>👨‍👩‍👧‍👦 Famille & Ambiance</NamedLink>
+    </li>
+    <li className={css.navigationLink}>
+      <NamedLink name="SearchPage" to={{ search: '?pub_category=jeuxvideo' }}>🎮 Jeux Vidéo</NamedLink>
+    </li>
+    <li className={css.navigationLink}>
+      <NamedLink name="SearchPage" to={{ search: '?pub_category=decouverte' }}>💡 Jeux à découvrir</NamedLink>
+    </li>
+  </>
+);
 
 const CustomLinkComponent = ({ linkConfig, currentPage }) => {
   const { group, text, type, href, route } = linkConfig;
@@ -32,10 +48,7 @@ const CustomLinkComponent = ({ linkConfig, currentPage }) => {
       : null;
   };
 
-  // Note: if the config contains 'route' keyword,
-  // then in-app linking config has been resolved already.
   if (type === 'internal' && route) {
-    // Internal link
     const { name, params, to } = route || {};
     const className = classNames(css.navigationLink, getCurrentPageClass(name));
     return (
@@ -49,28 +62,15 @@ const CustomLinkComponent = ({ linkConfig, currentPage }) => {
   }
   return (
     <li className={css.navigationLink}>
-      <ExternalLink href={href}>
+      {/* Note: External links don't have built-in support here in base, assuming standard a-tag */}
+      <a href={href}>
         <span className={css.menuItemBorder} />
         {text}
-      </ExternalLink>
+      </a>
     </li>
   );
 };
 
-/**
- * Menu for mobile layout (opens through hamburger icon)
- *
- * @component
- * @param {Object} props
- * @param {boolean} props.isAuthenticated
- * @param {string?} props.currentPage
- * @param {boolean} props.currentUserHasListings
- * @param {Object?} props.currentUser API entity
- * @param {number} props.notificationCount
- * @param {Array<Object>} props.customLinks Contains object like { group, text, type, href, route }
- * @param {Function} props.onLogout
- * @returns {JSX.Element} search icon
- */
 const TopbarMobileMenu = props => {
   const {
     isAuthenticated,
@@ -132,6 +132,11 @@ const TopbarMobileMenu = props => {
             />
           </div>
 
+          {/* Ici, on injecte les catégories pour les non-connectés */}
+          <ul className={css.accountLinksWrapper}>
+             <CategoryLinks />
+          </ul>
+
           <ul className={css.customLinksWrapper}>{extraLinks}</ul>
 
           <div className={css.spacer} />
@@ -180,6 +185,9 @@ const TopbarMobileMenu = props => {
               {notificationCountBadge}
             </NamedLink>
           </li>
+          {/* Ici, on injecte les catégories pour les connectés */}
+          <CategoryLinks />
+          
           {manageListingsLinkMaybe}
           <li className={classNames(css.navigationLink, currentPageClass('ProfileSettingsPage'))}>
             <NamedLink name="ProfileSettingsPage">
